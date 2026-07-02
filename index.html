@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1c2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="诸暨光伏天气" />
+  <meta name="description" content="诸暨 10kWp 光伏与天气参考" />
+  <title>诸暨光伏天气</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div class="title">诸暨光伏天气</div>
+    <div class="badges">
+      <span class="badge">10kWp</span>
+      <span class="badge">平屋顶</span>
+      <span class="badge">有储能</span>
+    </div>
+  </header>
+
+  <main id="app" class="main">
+    <section class="panel solar-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">☀️ 今日光伏参考</div>
+          <div class="panel-sub">简化估算，仅做自发自用调度参考</div>
+        </div>
+        <div class="big-value" id="pv-kwh">--</div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">参考 GH I</div>
+          <div class="metric-value" id="pv-ghi">--</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">参考面板温度</div>
+          <div class="metric-value" id="pv-temp">--</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">峰值功率时段</div>
+          <div class="metric-value" id="pv-peak">--</div>
+        </div>
+      </div>
+      <div class="hint">发电量基于辐照与气温简化估算，不是逆变器读数。</div>
+    </section>
+
+    <section class="panel weather-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">🌤 天气主参考</div>
+          <div class="panel-sub">优先看今明 sunrise 与降雨时段</div>
+        </div>
+        <div class="time-pill" id="weather-updated">更新于 --</div>
+      </div>
+
+      <div class="sun-block" id="sun-block">
+        <div class="sun-card">
+          <div class="sun-title">🌅 今晨 sunrise</div>
+          <div class="sun-row">
+            <div class="sun-item"><span class="sun-label">时间</span><span class="sun-value" id="sunrise-today">--</span></div>
+            <div class="sun-item"><span class="sun-label">天气</span><span class="sun-value" id="weather-today">加载中</span></div>
+          </div>
+          <div class="sun-row">
+            <div class="sun-item"><span class="sun-label">降雨概率</span><span class="sun-value" id="pop-today">--</span></div>
+            <div class="sun-item"><span class="sun-label">云量</span><span class="sun-value" id="cloud-today">--</span></div>
+          </div>
+          <div class="rain-chips" id="rain-today"></div>
+        </div>
+        <div class="sun-card">
+          <div class="sun-title">🌇 明晨 sunrise</div>
+          <div class="sun-row">
+            <div class="sun-item"><span class="sun-label">时间</span><span class="sun-value" id="sunrise-tomorrow">--</span></div>
+            <div class="sun-item"><span class="sun-label">天气</span><span class="sun-value" id="weather-tomorrow">加载中</span></div>
+          </div>
+          <div class="sun-row">
+            <div class="sun-item"><span class="sun-label">降雨概率</span><span class="sun-value" id="pop-tomorrow">--</span></div>
+            <div class="sun-item"><span class="sun-label">云量</span><span class="sun-value" id="cloud-tomorrow">--</span></div>
+          </div>
+          <div class="rain-chips" id="rain-tomorrow"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">📈 今明 sunrise 前后对比</div>
+          <div class="panel-sub">rad、云量、降雨概率一起看</div>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="sunrise-chart"></canvas>
+      </div>
+    </section>
+
+    <section class="panel hourly-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">🕒 未来 3 天逐小时</div>
+          <div class="panel-sub">重点查看 sunrise 前后与白天时段</div>
+        </div>
+      </div>
+      <div class="hourly-scroll">
+        <div class="hourly-list" id="hourly-list"></div>
+      </div>
+    </section>
+
+    <section class="panel daily-panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">📅 未来 3 天概览</div>
+          <div class="panel-sub">高温 / 降雨 / sunrise</div>
+        </div>
+      </div>
+      <div class="daily-list" id="daily-list"></div>
+    </section>
+
+    <section class="refresh-hint">下拉页面即可刷新数据</section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
