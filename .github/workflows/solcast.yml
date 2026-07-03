@@ -23,9 +23,10 @@ jobs:
             echo "Missing SOLCAST_API_KEY" >&2
             exit 1
           fi
-          curl -sS -H "Authorization: Bearer ${SOLCAST_API_KEY}" \
+          curl -sSf -H "Authorization: Bearer ${SOLCAST_API_KEY}" \
             "https://api.solcast.com.au/rooftop_sites/6202-eb4d-032d-dabc/forecasts?format=json" \
             -o data/solcast.json
+          test -s data/solcast.json
           cat data/solcast.json
 
       - name: Commit and push
