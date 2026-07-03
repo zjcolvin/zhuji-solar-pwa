@@ -181,7 +181,7 @@ async function fetchOpenMeteo() {
 
 async function fetchSolcast() {
   try {
-    const res = await fetch('data/solcast.json', { cache: 'no-store' });
+    const res = await freshFetch('data/solcast.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const payload = await res.json().catch(() => ({}));
     const grouped = groupSolcastForecasts(payload);
@@ -226,6 +226,14 @@ function groupSolcastForecasts(payload) {
     if (item.pv_estimate != null) out[dateStr].kwh += item.pv_estimate;
   });
   return out;
+}
+
+async function freshFetch(url, options = {}) {
+  const res = await fetch(url, { cache: 'no-store', ...options });
+  if (!res.ok || (res.headers.get('content-length') === '0') || (await res.clone().text()).trim() === '') {
+    return fetch(url, { cache: 'reload', ...options });
+  }
+  return res;
 }
 
 function dayWindowFor(dateStr) {
