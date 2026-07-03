@@ -1,0 +1,33 @@
+name: Update Solcast Solar Data
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update-solcast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch Solcast forecast
+        run: |
+          set -euo pipefail
+          if [ -z "${{ secrets.SOLCAST_API_KEY }}" ]; then
+            echo "Missing SOLCAST_API_KEY" >&2
+            exit 1
+          fi
+          curl -sS "https://api.solcast.com.au/rooftop_sites/forecasts?format=json&api_key=${{ secrets.SOLCAST_API_KEY }}&latitude=29.715&longitude=120.242&capacity=10&azimuth=0&tilt=0&installation_type=ground&loss_factor=14&hours=24&forecast_days=2&energy=kwh" -o data/solcast.json
+          cat data/solcast.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data/solcast.json
+          git diff --cached --quiet || git commit -m "chore: update solcast data"
+          git push
