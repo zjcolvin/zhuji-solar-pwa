@@ -1,7 +1,7 @@
 {
   "name": "诸暨光伏天气",
   "short_name": "光伏天气",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#eef6fb",
   "theme_color": "#0b1c2c",
