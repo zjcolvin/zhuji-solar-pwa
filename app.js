@@ -181,9 +181,20 @@ async function fetchOpenMeteo() {
 
 async function fetchSolcast() {
   try {
-    const res = await freshFetch('data/solcast.json');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const payload = await res.json().catch(() => ({}));
+    const sources = [
+      'data/solcast.json',
+      'https://raw.githubusercontent.com/zjcolvin/zhuji-solar-pwa/main/data/solcast.json',
+    ];
+    let payload = null;
+    for (const url of sources) {
+      const res = await freshFetch(url);
+      if (!res.ok) continue;
+      payload = await res.json().catch(() => null);
+      if (payload && Array.isArray(payload.forecasts)) {
+        break;
+      }
+    }
+    if (!payload) throw new Error('Solcast 数据为空');
     const grouped = groupSolcastForecasts(payload);
     const today = new Date().toLocaleDateString('en-CA', { timeZone: STATE.tz });
     const tomorrowObj = new Date(new Date().toLocaleDateString('en-CA', { timeZone: STATE.tz }));
