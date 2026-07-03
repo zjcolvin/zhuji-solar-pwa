@@ -180,72 +180,40 @@ async function fetchOpenMeteo() {
 }
 
 async function fetchSolcast() {
-  const apiKey = getSolcastKey();
-  if (!apiKey) {
-    $('#solar-source').textContent = '未输入 API Key';
-    $('#solar-refresh-status').textContent = '请点击右上角设置 Solcast API Key';
+  try {
+    const res = await fetch('data/solcast.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const payload = await res.json().catch(() => ({}));
+    const grouped = groupSolcastForecasts(payload);
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: STATE.tz });
+    const tomorrowObj = new Date(new Date().toLocaleDateString('en-CA', { timeZone: STATE.tz }));
+    tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+    const tomorrow = tomorrowObj.toLocaleDateString('en-CA', { timeZone: STATE.tz });
+    const todayRadiance = grouped[today]?.radianceMax ?? null;
+    const tomorrowRadiance = grouped[tomorrow]?.radianceMax ?? null;
+    $('#solar-source').textContent = 'Solcast 缓存';
+    $('#solar-refresh-status').textContent = '已读取';
+    return {
+      today: {
+        pv_estimate: grouped[today]?.kwh,
+        pv_peak: todayRadiance ? '峰值 ' + Math.round(todayRadiance) + ' W/m²' : '今日峰值',
+      },
+      tomorrow: {
+        pv_estimate: grouped[tomorrow]?.kwh,
+        pv_peak: tomorrowRadiance ? '峰值 ' + Math.round(tomorrowRadiance) + ' W/m²' : '明日峰值',
+      },
+      daily: Object.keys(grouped).slice(0, 3).map((dateStr) => ({
+        time: dateStr + 'T00:00:00Z',
+        pvEstimate: grouped[dateStr]?.kwh,
+        pvPeakRadiance: grouped[dateStr]?.radianceMax,
+      })),
+    };
+  } catch (error) {
+    console.warn('Solcast cache fetch failed', error);
+    $('#solar-source').textContent = '无光伏缓存';
+    $('#solar-refresh-status').textContent = '等待 GitHub Actions 更新';
     return null;
   }
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: STATE.tz });
-  const tomorrowObj = new Date(new Date().toLocaleDateString('en-CA', { timeZone: STATE.tz }));
-  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
-  const tomorrow = tomorrowObj.toLocaleDateString('en-CA', { timeZone: STATE.tz });
-  const params = new URLSearchParams({
-    format: 'json',
-    api_key: apiKey,
-    latitude: STATE.lat,
-    longitude: STATE.lon,
-    capacity: 10,
-    azimuth: 0,
-    tilt: 0,
-    installation_type: 'ground',
-    loss_factor: 14,
-    hours: 24,
-    forecast_days: 2,
-    energy: 'kwh',
-  });
-  const res = await fetch('https://api.solcast.com.au/rooftop_sites/forecasts?' + params.toString());
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    console.warn('Solcast API error', res.status, text.slice(0, 200));
-    const errText = 'API ' + res.status;
-    $('#solar-source').textContent = '光伏数据异常';
-    $('#solar-refresh-status').textContent = errText;
-    return { error: errText };
-  }
-  const payload = await res.json().catch(() => ({}));
-  const grouped = groupSolcastForecasts(payload);
-  const todayEstimate = grouped[today]?.kwh;
-  const tomorrowEstimate = grouped[tomorrow]?.kwh;
-  const todayRadiance = grouped[today]?.radianceMax ?? null;
-  const tomorrowRadiance = grouped[tomorrow]?.radianceMax ?? null;
-  $('#solar-source').textContent = 'Solcast 参考';
-  $('#solar-refresh-status').textContent = '已刷新';
-  return {
-    today: {
-      pv_estimate: todayEstimate,
-      pv_peak: todayRadiance ? '峰值 ' + Math.round(todayRadiance) + ' W/m²' : '今日峰值',
-    },
-    tomorrow: {
-      pv_estimate: tomorrowEstimate,
-      pv_peak: tomorrowRadiance ? '峰值 ' + Math.round(tomorrowRadiance) + ' W/m²' : '明日峰值',
-    },
-    daily: Object.keys(grouped).slice(0, 3).map((dateStr) => ({
-      time: dateStr + 'T00:00:00Z',
-      pvEstimate: grouped[dateStr]?.kwh,
-      pvPeakRadiance: grouped[dateStr]?.radianceMax,
-    })),
-  };
-}
-
-function getSolcastKey() {
-  try { return localStorage.getItem('solcast_api_key') || ''; } catch { return ''; }
-}
-function setSolcastKey(key) {
-  try { localStorage.setItem('solcast_api_key', key); } catch {}
-}
-function removeSolcastKey() {
-  try { localStorage.removeItem('solcast_api_key'); } catch {}
 }
 
 function groupSolcastForecasts(payload) {
@@ -464,7 +432,7 @@ async function load() {
     }));
     buildDaily(displayDailyDays);
     renderDailySolarCards(solcastData?.daily || [], displayDailyDays);
-    if (solcastData?.error) $('#solar-refresh-status').textContent = '光伏数据：' + solcastData.error;
+    if (!solcastData) $('#solar-refresh-status').textContent = '等待 GitHub Actions 更新';
     $('#weather-updated').textContent = '更新于 ' + fmtHour(nowIso);
     toast('已刷新');
   } catch (err) {
@@ -486,7 +454,7 @@ function renderSolarHero(summary, solcastToday) {
   $('#solar-peak-estimate').textContent = solcastToday?.pv_peak || '今日峰值';
   $('#solar-peak-radiance').textContent = summary.rad ? '参考峰值 ' + summary.rad + ' W/m²' : '等待峰值辐照';
   if (solcastToday) {
-    $('#solar-source').textContent = 'Solcast 参考';
+    $('#solar-source').textContent = 'Solcast 缓存';
   } else if (estimate.kwh) {
     $('#solar-source').textContent = 'Open-Meteo 估算';
   }
@@ -537,18 +505,6 @@ function initPullToRefresh() {
   });
 }
 
-function initApiKeyModal() {
-  const modal = $('#api-key-modal');
-  const backdrop = $('#key-modal-backdrop');
-  const input = $('#solcast-key-input');
-  const open = () => { input.value = getSolcastKey(); modal.setAttribute('aria-hidden', 'false'); input.focus(); };
-  const close = () => modal.setAttribute('aria-hidden', 'true');
-  $('#api-key-button').addEventListener('click', open);
-  backdrop.addEventListener('click', close);
-  $('#key-modal-cancel').addEventListener('click', close);
-  $('#key-modal-save').addEventListener('click', () => { setSolcastKey(input.value.trim()); close(); toast('已保存 Solcast API Key'); });
-}
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
@@ -556,5 +512,4 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('DOMContentLoaded', () => {
   load();
   initPullToRefresh();
-  initApiKeyModal();
 });

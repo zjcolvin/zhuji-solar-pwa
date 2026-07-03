@@ -21,13 +21,6 @@
       <div class="title">诸暨光伏天气</div>
       <div class="subtitle">诸暨 · 10kWp 平屋顶 · 有储能</div>
     </div>
-    <div class="top-bar-actions">
-      <button class="icon-button" id="api-key-button" type="button" aria-label="Solcast API Key">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
-        </svg>
-      </button>
-    </div>
   </header>
 
   <main id="app" class="main">
@@ -180,19 +173,6 @@
   </main>
 
   <div class="toast" id="toast"></div>
-  <div class="key-modal" id="api-key-modal" aria-hidden="true">
-    <div class="key-modal-backdrop" id="key-modal-backdrop"></div>
-    <div class="key-modal-card">
-      <div class="key-modal-title">输入 Solcast API Key</div>
-      <div class="key-modal-sub">公开页面不会隐藏你的 Key；更稳妥方式是自行托管。</div>
-      <input class="key-input" id="solcast-key-input" type="password" placeholder="SOLCAST_API_KEY" />
-      <div class="key-modal-actions">
-        <button class="key-modal-button secondary" id="key-modal-cancel" type="button">取消</button>
-        <button class="key-modal-button primary" id="key-modal-save" type="button">保存</button>
-      </div>
-    </div>
-  </div>
-
   <script src="app.js"></script>
 </body>
 </html>
