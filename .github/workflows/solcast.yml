@@ -15,13 +15,17 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch Solcast forecast
+        env:
+          SOLCAST_API_KEY: ${{ secrets.SOLCAST_API_KEY }}
         run: |
           set -euo pipefail
-          if [ -z "${{ secrets.SOLCAST_API_KEY }}" ]; then
+          if [ -z "${SOLCAST_API_KEY}" ]; then
             echo "Missing SOLCAST_API_KEY" >&2
             exit 1
           fi
-          curl -sS "https://api.solcast.com.au/rooftop_sites/forecasts?format=json&api_key=${{ secrets.SOLCAST_API_KEY }}&latitude=29.715&longitude=120.242&capacity=10&azimuth=0&tilt=0&installation_type=ground&loss_factor=14&hours=24&forecast_days=2&energy=kwh" -o data/solcast.json
+          curl -sS -H "Authorization: Bearer ${SOLCAST_API_KEY}" \
+            "https://api.solcast.com.au/rooftop_sites/6202-eb4d-032d-dabc/forecasts?format=json" \
+            -o data/solcast.json
           cat data/solcast.json
 
       - name: Commit and push
