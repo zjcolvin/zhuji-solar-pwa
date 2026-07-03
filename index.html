@@ -16,94 +16,144 @@
 </head>
 <body>
   <header class="top-bar">
-    <div class="title">诸暨光伏天气</div>
-    <div class="badges">
-      <span class="badge">10kWp</span>
-      <span class="badge">平屋顶</span>
-      <span class="badge">有储能</span>
+    <div class="top-bar-left">
+      <div class="title">诸暨光伏天气</div>
+      <div class="subtitle">诸暨 · 10kWp 平屋顶 · 有储能</div>
+    </div>
+    <div class="top-bar-actions">
+      <button class="icon-button" id="api-key-button" type="button" aria-label="Solcast API Key">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+        </svg>
+      </button>
     </div>
   </header>
 
   <main id="app" class="main">
-    <section class="panel solar-panel">
-      <div class="panel-header">
+    <section class="panel hero-solar">
+      <div class="hero-gradient"></div>
+      <div class="solar-hero">
         <div>
-          <div class="panel-title">☀️ 今日光伏参考</div>
-          <div class="panel-sub">简化估算，仅做自发自用调度参考</div>
+          <div class="panel-title">今日太阳能参考</div>
+          <div class="panel-sub">10kWp · 平屋顶 · 无倾斜 · 日出时段优先</div>
         </div>
-        <div class="big-value" id="pv-kwh">--</div>
+        <div class="solar-source" id="solar-source">等待数据</div>
       </div>
-      <div class="metrics">
-        <div class="metric">
-          <div class="metric-label">参考 GH I</div>
-          <div class="metric-value" id="pv-ghi">--</div>
+      <div class="hero-row">
+        <div class="hero-primary">
+          <div class="hero-meta">预估发电</div>
+          <div class="hero-big-value" id="pv-kwh">--</div>
+          <div class="hero-meta">kWh · 估算参考</div>
         </div>
-        <div class="metric">
-          <div class="metric-label">参考面板温度</div>
-          <div class="metric-value" id="pv-temp">--</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">峰值功率时段</div>
-          <div class="metric-value" id="pv-peak">--</div>
+        <div class="hero-metrics">
+          <div class="hero-metric">
+            <div class="hero-metric-label">峰值辐照</div>
+            <div class="hero-metric-value" id="pv-ghi">--</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">参考面板温度</div>
+            <div class="hero-metric-value" id="pv-temp">--</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">峰值时段</div>
+            <div class="hero-metric-value" id="pv-peak">--</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">Solcast 峰值</div>
+            <div class="hero-metric-value" id="solar-peak-estimate">待获取</div>
+          </div>
         </div>
       </div>
-      <div class="hint">发电量基于辐照与气温简化估算，不是逆变器读数。</div>
+      <div class="hero-footer">
+        <div class="pill" id="solar-refresh-status">等待更新</div>
+        <div class="pill ghost">不自产出逆变器读数</div>
+      </div>
     </section>
 
     <section class="panel weather-panel">
       <div class="panel-header">
         <div>
-          <div class="panel-title">🌤 天气主参考</div>
-          <div class="panel-sub">优先看今明 sunrise 与降雨时段</div>
+          <div class="panel-title">天气主参考</div>
+          <div class="panel-sub">优先关注今明 sunrise 与白天降雨</div>
         </div>
         <div class="time-pill" id="weather-updated">更新于 --</div>
       </div>
 
-      <div class="sun-block" id="sun-block">
-        <div class="sun-card">
-          <div class="sun-title">🌅 今晨 sunrise</div>
-          <div class="sun-row">
-            <div class="sun-item"><span class="sun-label">时间</span><span class="sun-value" id="sunrise-today">--</span></div>
-            <div class="sun-item"><span class="sun-label">天气</span><span class="sun-value" id="weather-today">加载中</span></div>
+      <div class="sun-grid" id="sun-block">
+        <article class="sun-card">
+          <div class="sun-header">
+            <div>
+              <div class="sun-title">🌅 今晨 sunrise</div>
+              <div class="sun-sub">日出前后是最关键的发电窗口</div>
+            </div>
+            <div class="sun-clock" id="sunrise-today">--</div>
           </div>
           <div class="sun-row">
-            <div class="sun-item"><span class="sun-label">降雨概率</span><span class="sun-value" id="pop-today">--</span></div>
-            <div class="sun-item"><span class="sun-label">云量</span><span class="sun-value" id="cloud-today">--</span></div>
+            <div class="sun-chip">
+              <span class="sun-chip-label">天气</span>
+              <span class="sun-chip-value" id="weather-today">加载中</span>
+            </div>
+            <div class="sun-chip">
+              <span class="sun-chip-label" id="pop-label-today">降雨概率</span>
+              <span class="sun-chip-value" id="pop-today">--</span>
+            </div>
+            <div class="sun-chip">
+              <span class="sun-chip-label">云量</span>
+              <span class="sun-chip-value" id="cloud-today">--</span>
+            </div>
           </div>
-          <div class="rain-chips" id="rain-today"></div>
-        </div>
-        <div class="sun-card">
-          <div class="sun-title">🌇 明晨 sunrise</div>
+          <div class="rain-alert" id="rain-today"></div>
+        </article>
+        <article class="sun-card">
+          <div class="sun-header">
+            <div>
+              <div class="sun-title">🌇 明晨 sunrise</div>
+              <div class="sun-sub">用于清晨储能与用电计划</div>
+            </div>
+            <div class="sun-clock" id="sunrise-tomorrow">--</div>
+          </div>
           <div class="sun-row">
-            <div class="sun-item"><span class="sun-label">时间</span><span class="sun-value" id="sunrise-tomorrow">--</span></div>
-            <div class="sun-item"><span class="sun-label">天气</span><span class="sun-value" id="weather-tomorrow">加载中</span></div>
+            <div class="sun-chip">
+              <span class="sun-chip-label">天气</span>
+              <span class="sun-chip-value" id="weather-tomorrow">加载中</span>
+            </div>
+            <div class="sun-chip">
+              <span class="sun-chip-label" id="pop-label-tomorrow">降雨概率</span>
+              <span class="sun-chip-value" id="pop-tomorrow">--</span>
+            </div>
+            <div class="sun-chip">
+              <span class="sun-chip-label">云量</span>
+              <span class="sun-chip-value" id="cloud-tomorrow">--</span>
+            </div>
           </div>
-          <div class="sun-row">
-            <div class="sun-item"><span class="sun-label">降雨概率</span><span class="sun-value" id="pop-tomorrow">--</span></div>
-            <div class="sun-item"><span class="sun-label">云量</span><span class="sun-value" id="cloud-tomorrow">--</span></div>
-          </div>
-          <div class="rain-chips" id="rain-tomorrow"></div>
-        </div>
+          <div class="rain-alert" id="rain-tomorrow"></div>
+        </article>
       </div>
     </section>
 
     <section class="panel chart-panel">
       <div class="panel-header">
         <div>
-          <div class="panel-title">📈 今明 sunrise 前后对比</div>
-          <div class="panel-sub">rad、云量、降雨概率一起看</div>
+          <div class="panel-title">今明 sunrise 前后对比</div>
+          <div class="panel-sub">辐射、云量、降雨概率一起判断能否发电</div>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-line" style="background:#f59e0b"></span>辐射</span>
+          <span class="legend-item"><span class="legend-line" style="background:#2a6fe0"></span>云量</span>
+          <span class="legend-item"><span class="legend-line" style="background:#16a34a"></span>降雨</span>
         </div>
       </div>
       <div class="chart-wrap">
         <canvas id="sunrise-chart"></canvas>
       </div>
+      <div class="chart-caption" id="solar-peak-radiance">等待峰值辐照</div>
     </section>
 
     <section class="panel hourly-panel">
       <div class="panel-header">
         <div>
-          <div class="panel-title">🕒 未来 3 天逐小时</div>
-          <div class="panel-sub">重点查看 sunrise 前后与白天时段</div>
+          <div class="panel-title">未来 24 小时</div>
+          <div class="panel-sub">横滑查看 sunrise 前后与白天</div>
         </div>
       </div>
       <div class="hourly-scroll">
@@ -114,17 +164,33 @@
     <section class="panel daily-panel">
       <div class="panel-header">
         <div>
-          <div class="panel-title">📅 未来 3 天概览</div>
-          <div class="panel-sub">高温 / 降雨 / sunrise</div>
+          <div class="panel-title">未来 3 天</div>
+          <div class="panel-sub">光伏参考 + 天气 + sunrise</div>
         </div>
       </div>
       <div class="daily-list" id="daily-list"></div>
+      <div class="daily-list" id="solar-daily"></div>
     </section>
 
-    <section class="refresh-hint">下拉页面即可刷新数据</section>
+    <section class="refresh-hint">
+      <span>下拉即可刷新</span>
+      <span class="refresh-pulse">🌞</span>
+    </section>
   </main>
 
   <div class="toast" id="toast"></div>
+  <div class="key-modal" id="api-key-modal" aria-hidden="true">
+    <div class="key-modal-backdrop" id="key-modal-backdrop"></div>
+    <div class="key-modal-card">
+      <div class="key-modal-title">输入 Solcast API Key</div>
+      <div class="key-modal-sub">公开页面不会隐藏你的 Key；更稳妥方式是自行托管。</div>
+      <input class="key-input" id="solcast-key-input" type="password" placeholder="SOLCAST_API_KEY" />
+      <div class="key-modal-actions">
+        <button class="key-modal-button secondary" id="key-modal-cancel" type="button">取消</button>
+        <button class="key-modal-button primary" id="key-modal-save" type="button">保存</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/app.js"></script>
 </body>
