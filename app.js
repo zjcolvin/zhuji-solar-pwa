@@ -239,10 +239,21 @@ function groupSolcastForecasts(payload) {
   return out;
 }
 
+function solcastCacheBuster(url) {
+  try {
+    const u = new URL(url, location.href);
+    u.searchParams.set('_', Date.now());
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 async function freshFetch(url, options = {}) {
-  const res = await fetch(url, { cache: 'no-store', ...options });
+  const freshUrl = solcastCacheBuster(url);
+  let res = await fetch(freshUrl, { cache: 'no-store', ...options });
   if (!res.ok || (res.headers.get('content-length') === '0') || (await res.clone().text()).trim() === '') {
-    return fetch(url, { cache: 'reload', ...options });
+    res = await fetch(freshUrl, { cache: 'reload', ...options });
   }
   return res;
 }
