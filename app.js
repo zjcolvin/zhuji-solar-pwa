@@ -222,10 +222,8 @@ function groupSolcastForecasts(payload) {
   period.forEach((item) => {
     const dateStr = item.period_end?.slice(0, 10);
     if (!dateStr) return;
-    if (!out[dateStr]) out[dateStr] = { kwh: 0, radianceMax: item.ghi ?? item.gti ?? null };
-    if (item.pv_estimate != null) out[dateStr].kwh += item.pv_estimate / 1000;
-    const rad = item.ghi ?? item.gti ?? item.dni ?? 0;
-    if (rad && (out[dateStr].radianceMax == null || rad > out[dateStr].radianceMax)) out[dateStr].radianceMax = rad;
+    if (!out[dateStr]) out[dateStr] = { kwh: 0 };
+    if (item.pv_estimate != null) out[dateStr].kwh += item.pv_estimate;
   });
   return out;
 }
